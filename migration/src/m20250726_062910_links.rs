@@ -9,11 +9,9 @@ impl MigrationTrait for Migration {
     async fn up(&self, m: &SchemaManager) -> Result<(), DbErr> {
         create_table(m, "links",
             &[
-            
             ("id", ColType::PkAuto),
-            
-            ("url", ColType::StringNull),
-            ("short_url", ColType::StringNull),
+            ("url", ColType::String),
+            ("short_url", ColType::StringUniq),
             ],
             &[
             ]

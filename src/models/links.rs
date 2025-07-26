@@ -1,6 +1,26 @@
 use sea_orm::entity::prelude::*;
+use loco_rs::{prelude::*};
+use serde::{Deserialize};
+
 pub use super::_entities::links::{ActiveModel, Model, Entity};
 pub type Links = Entity;
+
+#[derive(Debug, Validate, Deserialize)]
+pub struct Validator {
+    #[validate(length(min = 1, message = "URL must not be empty"))]
+    pub url: String,
+    #[validate(length(min = 1, message = "Short URL must not be empty"))]
+    pub short_url: String,
+}
+
+impl Validatable for ActiveModel {
+    fn validator(&self) -> Box<dyn Validate> {
+        Box::new(Validator {
+            url: self.url.as_ref().to_owned(),
+            short_url: self.short_url.as_ref().to_owned(),
+        })
+    }
+}
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for ActiveModel {

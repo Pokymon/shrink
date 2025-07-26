@@ -13,15 +13,15 @@ use crate::{
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Params {
-    pub url: Option<String>,
-    pub short_url: Option<String>,
-    }
+    pub url: String,
+    pub short_url: String,
+}
 
 impl Params {
     fn update(&self, item: &mut ActiveModel) {
-      item.url = Set(self.url.clone());
-      item.short_url = Set(self.short_url.clone());
-      }
+        item.url = Set(self.url.clone());
+        item.short_url = Set(self.short_url.clone());
+    }
 }
 
 async fn load_item(ctx: &AppContext, id: i32) -> Result<Model> {
@@ -50,39 +50,6 @@ pub async fn new(
 }
 
 #[debug_handler]
-pub async fn update(
-    Path(id): Path<i32>,
-    State(ctx): State<AppContext>,
-    Json(params): Json<Params>,
-) -> Result<Response> {
-    let item = load_item(&ctx, id).await?;
-    let mut item = item.into_active_model();
-    params.update(&mut item);
-    let _ = item.update(&ctx.db).await?;
-    format::render().redirect_with_header_key("HX-Redirect", "/links")
-}
-
-#[debug_handler]
-pub async fn edit(
-    Path(id): Path<i32>,
-    ViewEngine(v): ViewEngine<TeraView>,
-    State(ctx): State<AppContext>,
-) -> Result<Response> {
-    let item = load_item(&ctx, id).await?;
-    views::link::edit(&v, &item)
-}
-
-#[debug_handler]
-pub async fn show(
-    Path(id): Path<i32>,
-    ViewEngine(v): ViewEngine<TeraView>,
-    State(ctx): State<AppContext>,
-) -> Result<Response> {
-    let item = load_item(&ctx, id).await?;
-    views::link::show(&v, &item)
-}
-
-#[debug_handler]
 pub async fn add(
     State(ctx): State<AppContext>,
     Json(params): Json<Params>,
@@ -96,6 +63,47 @@ pub async fn add(
 }
 
 #[debug_handler]
+pub async fn show(
+    Path(short_url): Path<String>,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let link = Entity::find()
+        .filter(Column::ShortUrl.eq(short_url))
+        .one(&ctx.db)
+        .await?;
+
+    match link {
+        Some(link) if !link.url.is_empty() => {
+            format::render().redirect(&link.url)
+        }
+        _ => Err(Error::NotFound),
+    }
+}
+
+#[debug_handler]
+pub async fn edit(
+    Path(id): Path<i32>,
+    ViewEngine(v): ViewEngine<TeraView>,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let item = load_item(&ctx, id).await?;
+    views::link::edit(&v, &item)
+}
+
+#[debug_handler]
+pub async fn update(
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    Json(params): Json<Params>,
+) -> Result<Response> {
+    let item = load_item(&ctx, id).await?;
+    let mut item = item.into_active_model();
+    params.update(&mut item);
+    let _ = item.update(&ctx.db).await?;
+    format::render().redirect_with_header_key("HX-Redirect", "/links")
+}
+
+#[debug_handler]
 pub async fn remove(Path(id): Path<i32>, State(ctx): State<AppContext>) -> Result<Response> {
     load_item(&ctx, id).await?.delete(&ctx.db).await?;
     format::empty()
@@ -103,13 +111,17 @@ pub async fn remove(Path(id): Path<i32>, State(ctx): State<AppContext>) -> Resul
 
 pub fn routes() -> Routes {
     Routes::new()
-        .prefix("links/")
+        .prefix("/links")
         .add("/", get(list))
+        .add("/new", get(new))
         .add("/", post(add))
-        .add("new", get(new))
-        .add("{id}", get(show))
-        .add("{id}/edit", get(edit))
-        .add("{id}", delete(remove))
-        .add("{id}", put(update))
-        .add("{id}", patch(update))
+        .add("/{id}/edit", get(edit))
+        .add("/{id}", put(update))
+        .add("/{id}", patch(update))
+        .add("/{id}", delete(remove))
+}
+
+pub fn redirect_routes() -> Routes {
+    Routes::new()
+        .add("/{short_url}", get(show))
 }

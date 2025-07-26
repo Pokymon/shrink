@@ -10,8 +10,8 @@ pub struct Model {
     pub updated_at: DateTimeWithTimeZone,
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub url: Option<String>,
-    pub short_url: Option<String>,
+    pub url: String,
+    pub short_url: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

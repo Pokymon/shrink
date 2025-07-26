@@ -224,7 +224,7 @@ async fn magic_link_verify(
 
 pub fn routes() -> Routes {
     Routes::new()
-        .prefix("/api/auth")
+        .prefix("/auth")
         .add("/register", post(register))
         .add("/verify/{token}", get(verify))
         .add("/login", post(login))
