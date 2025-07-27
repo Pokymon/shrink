@@ -12,7 +12,7 @@ impl MigrationTrait for Migration {
       "links",
       &[
         ("id", ColType::PkAuto),
-        ("user_id", ColType::Integer),
+        ("user_id", ColType::IntegerNull),
         ("url", ColType::String),
         ("short_url", ColType::StringUniq),
       ],

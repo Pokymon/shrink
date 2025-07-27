@@ -69,12 +69,9 @@ pub async fn show(
   let link = Entity::find()
     .filter(Column::ShortUrl.eq(short_url))
     .one(&ctx.db).await?;
-
   match link {
-    Some(link) if !link.url.is_empty() => {
-      format::render().redirect(&link.url)
-    }
-    _ => Err(Error::NotFound),
+    Some(link) => format::render().redirect(&link.url),
+    None => Err(Error::NotFound),
   }
 }
 
