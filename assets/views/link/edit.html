@@ -13,7 +13,7 @@ title %} {% block page_title %} Edit link: {{ item.id }} {% endblock page_title
       <label
         class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         for=":r2l:-form-item"
-        >url</label
+        >URL</label
       >
       <input
         class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm md:text-sm"
@@ -27,7 +27,7 @@ title %} {% block page_title %} Edit link: {{ item.id }} {% endblock page_title
       <label
         class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         for=":r2l:-form-item"
-        >short_url</label
+        >Short URL</label
       >
       <input
         class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm md:text-sm"
@@ -44,12 +44,6 @@ title %} {% block page_title %} Edit link: {{ item.id }} {% endblock page_title
           type="submit"
         >
           Submit
-        </button>
-        <button
-          class="text-xs py-3 px-6 rounded-lg bg-red-600 text-white"
-          onclick="confirmDelete(event, '/links/{{ item.id }}', '/links' )"
-        >
-          Delete
         </button>
       </div>
     </div>

@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% block title %} List of link {% endblock title %} {%
-block page_title %} link {% endblock page_title %} {% block content %}
+block page_title %} Shrink {% endblock page_title %} {% block content %}
 <div class="mb-10">
   {% if items %}
 
@@ -11,12 +11,12 @@ block page_title %} link {% endblock page_title %} {% block content %}
             <th
               class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[100px]"
             >
-              {{"url" | capitalize }}
+              URL
             </th>
             <th
               class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[100px]"
             >
-              {{"short_url" | capitalize }}
+              Short URL
             </th>
             <th
               class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[100px]"
@@ -28,12 +28,21 @@ block page_title %} link {% endblock page_title %} {% block content %}
         <tbody class="[&amp;_tr:last-child]:border-0">
           {% for item in items %}
           <tr class="border-b transition-colors hover:bg-muted/50">
-            <td class="p-2 align-middle font-medium">{{item.url | escape }}</td>
-            <td class="p-2 align-middle font-medium">
-              {{item.short_url | escape }}
-            </td>
+            <td class="p-2 align-middle font-medium">{{item.url }}</td>
+            <td class="p-2 align-middle font-medium">{{item.short_url }}</td>
             <td>
-              <a href="/links/{{ item.id }}/edit">Edit</a>
+              <button
+                class="text-xs py-3 px-6 rounded-lg bg-yellow-600 text-white"
+                onclick="location.href='/links/{{ item.id }}/edit'"
+              >
+                Edit
+              </button>
+              <button
+                class="text-xs py-3 px-6 rounded-lg bg-red-600 text-white"
+                onclick="confirmDelete(event, '/links/{{ item.id }}', '/links' )"
+              >
+                Delete
+              </button>
             </td>
           </tr>
           {% endfor %}

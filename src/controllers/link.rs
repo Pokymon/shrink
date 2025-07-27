@@ -2,126 +2,126 @@
 #![allow(clippy::unnecessary_struct_initialization)]
 #![allow(clippy::unused_async)]
 use loco_rs::prelude::*;
-use serde::{Deserialize, Serialize};
-use sea_orm::{sea_query::Order, QueryOrder};
+use serde::{ Deserialize, Serialize };
+use sea_orm::{ sea_query::Order, QueryOrder };
 use axum::debug_handler;
 
 use crate::{
-    models::_entities::links::{ActiveModel, Column, Entity, Model},
-    views,
+  models::_entities::links::{ ActiveModel, Column, Entity, Model },
+  views,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Params {
-    pub url: String,
-    pub short_url: String,
+  pub url: String,
+  pub short_url: String,
 }
 
 impl Params {
-    fn update(&self, item: &mut ActiveModel) {
-        item.url = Set(self.url.clone());
-        item.short_url = Set(self.short_url.clone());
-    }
+  fn update(&self, item: &mut ActiveModel) {
+    item.url = Set(self.url.clone());
+    item.short_url = Set(self.short_url.clone());
+  }
 }
 
 async fn load_item(ctx: &AppContext, id: i32) -> Result<Model> {
-    let item = Entity::find_by_id(id).one(&ctx.db).await?;
-    item.ok_or_else(|| Error::NotFound)
+  let item = Entity::find_by_id(id).one(&ctx.db).await?;
+  item.ok_or_else(|| Error::NotFound)
 }
 
 #[debug_handler]
 pub async fn list(
-    ViewEngine(v): ViewEngine<TeraView>,
-    State(ctx): State<AppContext>,
+  ViewEngine(v): ViewEngine<TeraView>,
+  State(ctx): State<AppContext>
 ) -> Result<Response> {
-    let item = Entity::find()
-        .order_by(Column::Id, Order::Desc)
-        .all(&ctx.db)
-        .await?;
-    views::link::list(&v, &item)
+  let item = Entity::find()
+    .order_by(Column::Id, Order::Desc)
+    .all(&ctx.db).await?;
+  views::link::list(&v, &item)
 }
 
 #[debug_handler]
 pub async fn new(
-    ViewEngine(v): ViewEngine<TeraView>,
-    State(_ctx): State<AppContext>,
+  ViewEngine(v): ViewEngine<TeraView>,
+  State(_ctx): State<AppContext>
 ) -> Result<Response> {
-    views::link::create(&v)
+  views::link::create(&v)
 }
 
 #[debug_handler]
 pub async fn add(
-    State(ctx): State<AppContext>,
-    Json(params): Json<Params>,
+  State(ctx): State<AppContext>,
+  Json(params): Json<Params>
 ) -> Result<Response> {
-    let mut item = ActiveModel {
-        ..Default::default()
-    };
-    params.update(&mut item);
-    let _ = item.insert(&ctx.db).await?;
-    format::render().redirect_with_header_key("HX-Redirect", "/links")
+  let mut item = ActiveModel {
+    ..Default::default()
+  };
+  params.update(&mut item);
+  let _ = item.insert(&ctx.db).await?;
+  format::render().redirect_with_header_key("HX-Redirect", "/links")
 }
 
 #[debug_handler]
 pub async fn show(
-    Path(short_url): Path<String>,
-    State(ctx): State<AppContext>,
+  Path(short_url): Path<String>,
+  State(ctx): State<AppContext>
 ) -> Result<Response> {
-    let link = Entity::find()
-        .filter(Column::ShortUrl.eq(short_url))
-        .one(&ctx.db)
-        .await?;
+  let link = Entity::find()
+    .filter(Column::ShortUrl.eq(short_url))
+    .one(&ctx.db).await?;
 
-    match link {
-        Some(link) if !link.url.is_empty() => {
-            format::render().redirect(&link.url)
-        }
-        _ => Err(Error::NotFound),
+  match link {
+    Some(link) if !link.url.is_empty() => {
+      format::render().redirect(&link.url)
     }
+    _ => Err(Error::NotFound),
+  }
 }
 
 #[debug_handler]
 pub async fn edit(
-    Path(id): Path<i32>,
-    ViewEngine(v): ViewEngine<TeraView>,
-    State(ctx): State<AppContext>,
+  Path(id): Path<i32>,
+  ViewEngine(v): ViewEngine<TeraView>,
+  State(ctx): State<AppContext>
 ) -> Result<Response> {
-    let item = load_item(&ctx, id).await?;
-    views::link::edit(&v, &item)
+  let item = load_item(&ctx, id).await?;
+  views::link::edit(&v, &item)
 }
 
 #[debug_handler]
 pub async fn update(
-    Path(id): Path<i32>,
-    State(ctx): State<AppContext>,
-    Json(params): Json<Params>,
+  Path(id): Path<i32>,
+  State(ctx): State<AppContext>,
+  Json(params): Json<Params>
 ) -> Result<Response> {
-    let item = load_item(&ctx, id).await?;
-    let mut item = item.into_active_model();
-    params.update(&mut item);
-    let _ = item.update(&ctx.db).await?;
-    format::render().redirect_with_header_key("HX-Redirect", "/links")
+  let item = load_item(&ctx, id).await?;
+  let mut item = item.into_active_model();
+  params.update(&mut item);
+  let _ = item.update(&ctx.db).await?;
+  format::render().redirect_with_header_key("HX-Redirect", "/links")
 }
 
 #[debug_handler]
-pub async fn remove(Path(id): Path<i32>, State(ctx): State<AppContext>) -> Result<Response> {
-    load_item(&ctx, id).await?.delete(&ctx.db).await?;
-    format::empty()
+pub async fn remove(
+  Path(id): Path<i32>,
+  State(ctx): State<AppContext>
+) -> Result<Response> {
+  load_item(&ctx, id).await?.delete(&ctx.db).await?;
+  format::empty()
 }
 
 pub fn routes() -> Routes {
-    Routes::new()
-        .prefix("/links")
-        .add("/", get(list))
-        .add("/new", get(new))
-        .add("/", post(add))
-        .add("/{id}/edit", get(edit))
-        .add("/{id}", put(update))
-        .add("/{id}", patch(update))
-        .add("/{id}", delete(remove))
+  Routes::new()
+    .prefix("/links")
+    .add("/", get(list))
+    .add("/new", get(new))
+    .add("/", post(add))
+    .add("/{id}/edit", get(edit))
+    .add("/{id}", put(update))
+    .add("/{id}", patch(update))
+    .add("/{id}", delete(remove))
 }
 
 pub fn redirect_routes() -> Routes {
-    Routes::new()
-        .add("/{short_url}", get(show))
+  Routes::new().add("/{short_url}", get(show))
 }
